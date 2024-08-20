@@ -5,7 +5,7 @@ mov al, 0x60                ; send 0x60 to the 8042 controller
 out 0x64, al                ; command 0x60 write byte to controller configuration at byte 0
 out 0x60, al                ; write byte 0x60, disables internal clock
 mov dx, 0x3C0               ; set port to output to, port 0x3C0 writes to the attribute address register
-out dx, al                  ; "lock" color palette by setting the palette address source bit to 1 (the 0x40 is being ignored)
+out dx, al                  ; "lock" color palette by setting the palette address source bit to 1 (the 0x40 is being ignored), necessary to initiate video
 mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
 mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
 out dx, ax                  ; enable DMA for the VGA segment
