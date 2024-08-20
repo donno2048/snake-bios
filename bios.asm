@@ -7,7 +7,7 @@ out 0x60, al                ; write byte 0x60, disables internal clock
 mov dx, 0x3C0               ; set port to output to, port 0x3C0 writes to the attribute address register
 out dx, al                  ; "lock" color palette by setting the palette address source bit to 1 (the 0x40 is being ignored)
 mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
-mov ax, 0xf02               ; set the value of sequencer register 2 (the map mask register) to 3
+mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
 out dx, ax                  ; enable DMA for the VGA segment
 mov dl, 0xCE                ; port 0x3CE writes to the graphics registers
 mov ax, 0x1005              ; set the value of graphics register 5 (graphics mode register) to 0x10
