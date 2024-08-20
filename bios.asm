@@ -21,13 +21,13 @@ mov dl, 0xb4
 mov ax, 0x2701
 out dx, ax
 
-mov ax, 0x1f07
+mov ax, 0x207
 out dx, ax
 
-mov ax, 0x4f09
+mov ax, 0xf09
 out dx, ax
 
-mov ax, 0x8f12
+mov ax, 0x8012
 out dx, ax
 
 mov ch, 0x3b
