@@ -12,8 +12,8 @@ out dx, ax                  ; enable DMA for the VGA segment
 mov dl, 0xCE                ; port 0x3CE writes to the graphics registers
 mov ax, 0x1005              ; set the value of graphics register 5 (graphics mode register) to 0x10
 out dx, ax                  ; store characters as color-value pairs, not with two matrices
-mov ax, 0xFF08              ; set the value of graphics register 8 (high byte mask) to 0xFF
-out dx, ax                  ; don't mask the high byte when writing
+mov ax, 0xFF08              ; set the value of graphics register 8 (byte mask) to 0xFF
+out dx, ax                  ; don't mask the bytes when writing
 mov dl, 0xB4                ; port 0x3B4 writes to the CRTC registers
 mov ax, 0x2701              ; set the value of CRTC register 1 (horizontal display end) to 0x27
 out dx, ax                  ; set the char count in each row to 0x27+1 i.e. 40
