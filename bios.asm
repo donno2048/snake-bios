@@ -9,11 +9,11 @@ out dx, al                  ; "lock" color palette by setting the palette addres
 mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
 mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
 out dx, ax                  ; enable DMA for the VGA segment
-mov ax, 0x804               ; set the value of sequencer register 4 (memory mode) to 8
-out dx, ax                  ; make the cpu treat memory as chunks of 4 bytes
 mov dl, 0xCE                ; port 0x3CE writes to the graphics registers
 mov ax, 0x1005              ; set the value of graphics register 5 (graphics mode register) to 0x10
 out dx, ax                  ; store characters as color-value pairs, not with two matrices
+mov ax, 0xFF08              ; set the value of graphics register 8 (high byte mask) to 0xFF
+out dx, ax                  ; don't mask the high byte when writing
 mov dl, 0xB4                ; port 0x3B4 writes to the CRTC registers
 mov ax, 0x2701              ; set the value of CRTC register 1 (horizontal display end) to 0x27
 out dx, ax                  ; set the char count in each row to 0x27+1 i.e. 40
