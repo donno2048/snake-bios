@@ -27,3 +27,7 @@ nasm bios.asm -o snake.raw -D NONUMPAD
 ```
 
 And then use the keypad.
+
+Here it is as a QR Code (made with `qrencode -r <(sed 's/\x00*$//' snake.raw) -8 -o qr.png`)
+
+![](./qr.png)
