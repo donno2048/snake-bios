@@ -19,3 +19,11 @@ qemu-system-i386 -display curses -bios snake.raw -plugin contrib/plugins/libips.
 ```
 
 The game will take some time to initialize the hardware, then you just need to use the numpad arrows to control the snake movement.
+
+If you don't have a numpad you can compile with
+
+```sh
+nasm bios.asm -o snake.raw -D NONUMPAD
+```
+
+And then use the keypad.
