@@ -14,9 +14,7 @@ nasm bios.asm -o snake.raw
 
 ## Run
 
-```sh
-qemu-system-i386 -display curses -bios snake.raw -plugin contrib/plugins/libips.so,ips=2000
-```
+<pre><code>qemu-system-i386 -display curses -bios snake.raw -plugin <a href="https://github.com/donno2048/snake-bios/issues/2">contrib/plugins/libips.so</a>,ips=2000</code></pre>
 
 The game will take some time to initialize the hardware, then you just need to use the numpad arrows to control the snake movement.
 
