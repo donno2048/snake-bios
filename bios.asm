@@ -18,12 +18,10 @@ mov dl, 0xB4                ; port 0x3B4 writes to the CRTC registers
 mov ax, 0x2701              ; set the value of CRTC register 1 (horizontal display end) to 0x27
 out dx, ax                  ; set the char count in each row to 0x27+1 i.e. 40
 xchg si, ax                 ; arbitrary pointer to memory location where the initial position of the snake head is stored
-mov ax, 0x207               ; set the value of CTRC register 7 (the overflow register) to 2
-out dx, ax                  ; make vertical display end even bigger by setting bit 8 of the vertical display end to 1
+mov ax, 0x4007              ; set the value of CTRC register 7 (the overflow register) to 0x40
+out dx, ax                  ; setting bit 6 (0x40) sets vertical display end register's bit 9 to 1 which allows us not to set it
 mov ax, 0xF09               ; set the value of CTRC register 9 (the minimum scan line register) to 0xF
 out dx, ax                  ; set character height to 0xF+1 i.e. 16px
-mov ax, 0x8F12              ; set the value of CTRC register 0x12 (vertical display end register) to 0x8F
-out dx, ax                  ; set vertical display end to 0x18F (with 'mov ax, 0x207', 'out dx, ax' from before), screen_height=0x18F+1=16*25=character_height*line_count
 mov ch, 0x3B                ; override initial CX so that in initial screen clearing the entire buffer will be cleared
 start:                      ; reset game
     mov ax, 0x720           ; fill the screen with word 0x720 (white on black space)

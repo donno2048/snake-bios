@@ -4,7 +4,7 @@ A snake game made entirely in the BIOS.
 
 Based on my [other snake game](https://github.com/donno2048/snake).
 
-It's 114 bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
+It's 110 bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
 
 ## Compile
 
