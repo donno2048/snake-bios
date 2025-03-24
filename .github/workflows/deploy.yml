@@ -1,0 +1,18 @@
+name: Deploy to GitHub pages
+on:
+  workflow_dispatch:
+permissions:
+  pages: write
+  id-token: write
+concurrency:
+  group: $GITHUB_WORKFLOW
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'v86/'
+    - uses: actions/deploy-pages@v4

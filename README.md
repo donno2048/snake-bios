@@ -4,15 +4,51 @@ A snake game made entirely in the BIOS.
 
 Based on my [other snake game](https://github.com/donno2048/snake).
 
-It's 110 bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
+It's `110` bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
 
-## Compile
+## Running
+
+I can't show a demo using QEMU because I couldn't find any online tool to imitate QEMU.
+
+That's why I'm using the [V86](https://github.com/copy/v86) x86 emulator.
+
+However, when making this game I found a couple of differences between what QEMU and V86 require.
+
+I didn't want to take the easy route so that's why the code is filled with those `%ifdef QEMU` and `%ifdef V86`.
+
+This makes it possible to compile for QEMU compatibillity, V86 compatibillity or both.
+
+### Online demo
+
+The V86 version of the BIOS is `109` bytes (ignoring the last 4 bytes because we need them just because of a V86 bug as detailed in the comments).
+
+You can try the game in the [online demo](https://donno2048.github.io/snake-bios/).
+
+Use the numpad arrow keys on PC or swipe on mobile.
+
+The [`libv86`](./v86/libv86.js) and [`v86`](./v86/v86.wasm) are genrated like so:
 
 ```sh
-nasm bios.asm -o snake.raw
+cd v86
+git clone --depth 1 https://github.com/donno2048/v86
+cd v86
+make all
+cp build/libv86.js build/v86.wasm ..
+cd ..
+rm -rf v86
 ```
 
-## Run
+### Self-hosting
+
+### Compiling
+
+We're compiling for QEMU only so use `-D QEMU`.
+
+```sh
+nasm bios.asm -o snake.raw -D QEMU
+```
+
+### Run
 
 <pre><code>qemu-system-i386 -display curses -bios snake.raw -plugin <a href="https://github.com/donno2048/snake-bios/issues/2">contrib/plugins/libips.so</a>,ips=2000</code></pre>
 
@@ -26,6 +62,8 @@ nasm bios.asm -o snake.raw -D NONUMPAD
 
 And then use the keypad.
 
-Here it is as a QR Code (made with `qrencode -r <(sed 's/\x00*$//' snake.raw) -8 -o qr.png`)
+## QR Code
+
+Here is the game as a QR Code (made with `qrencode -r <(sed 's/\x00*$//' snake.raw) -8 -o qr.png`)
 
 ![](./qr.png)

@@ -1,10 +1,24 @@
+%ifndef QEMU
+%ifndef V86
+%error must select either QEMU or V86, or both
+%endif
+%endif
+
 mov ah, 0xA0                ; set AX to start of screen buffer segment
 mov ds, ax                  ; make DS point to screen buffer
 mov es, ax                  ; same for ES
-mov al, 0x60                ; send 0x60 to the 8042 controller
+mov dx, 0x3C0               ; port 0x3C0 writes to the attribute address register
+%ifdef V86
+mov al, 0xF4                ; enable keyboard command
+out 0x60, al                ; sends the command to the i8042 controller
+mov al, 0x7                 ; use 0x7 both to choose text color and the DAC corresponding to it
+out dx, al                  ; choose 0x7 ("white on black") text color
+out dx, al                  ; set it to DAC index 7, in this case, black (this inverts colors, but it's OK)
+%endif
+%ifdef QEMU
+mov al, 0x60                ; send 0x60 to the 8042 controller, and use later to set pallete address source bit
 out 0x64, al                ; command 0x60 write byte to controller configuration at byte 0
 out 0x60, al                ; write byte 0x60, disables internal clock
-mov dx, 0x3C0               ; port 0x3C0 writes to the attribute address register
 out dx, al                  ; "lock" color palette by setting the palette address source bit to 1 (the 0x40 is being ignored), necessary to initiate video
 mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
 mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
@@ -14,12 +28,24 @@ mov ax, 0x1005              ; set the value of graphics register 5 (graphics mod
 out dx, ax                  ; store characters as color-value pairs, not with two matrices
 mov ax, 0xFF08              ; set the value of graphics register 8 (byte mask) to 0xFF
 out dx, ax                  ; don't mask the bytes when writing
+%endif
+%ifdef V86
+mov dl, 0xC9                ; port 0x3C9 writes to the DAC data register
+mov al, 0x1F                ; store a 0x1F byte in the first DAC entry - not needed because we can use old AL but this looks better
+times 3 out dx, al          ; set rgb value of background to grey (rgb #1f1f1f)
+%endif
 mov dl, 0xB4                ; port 0x3B4 writes to the CRTC registers
 mov ax, 0x2701              ; set the value of CRTC register 1 (horizontal display end) to 0x27
 out dx, ax                  ; set the char count in each row to 0x27+1 i.e. 40
 xchg si, ax                 ; arbitrary pointer to memory location where the initial position of the snake head is stored
-mov ax, 0x4007              ; set the value of CTRC register 7 (the overflow register) to 0x40
-out dx, ax                  ; setting bit 6 (0x40) sets vertical display end register's bit 9 to 1 which allows us not to set it
+mov ax, 0x4807              ; set the value of CTRC register 7 (the overflow register) to 0x48
+out dx, ax                  ; setting bit 6 (0x40) sets vertical display end register's bit 9 to 1 which allows us not to set it, setting bit 3 (0x8) sets bit 8 of register index 0x15 (which we set for V86)
+%ifdef V86
+mov al, 0x2                 ; write 0x48 into register index 0x02 (start horizontal blancking register)
+out dx, ax                  ; disable blancking as 0x48 must be above the character clocks of a scan line as it's above the character clocks for the display
+mov ax, 0x9015              ; write 0x190 into register index 0x15 (start vertical blanking register), the set 8 bit comes from the overflow register (index 0x07)
+out dx, ax                  ; set display height to 0x10 (character height) times 25 lines
+%endif
 mov ax, 0xF09               ; set the value of CTRC register 9 (the minimum scan line register) to 0xF
 out dx, ax                  ; set character height to 0xF+1 i.e. 16px
 mov ch, 0x3B                ; override initial CX so that in initial screen clearing the entire buffer will be cleared
@@ -32,9 +58,19 @@ start:                      ; reset game
     mov di, [bx]            ; reset head position, BX always points to a valid screen position containing 0x720 after setting video mode
     lea sp, [bp+si]         ; set stack pointer (tail) to current head pointer
 .food:                      ; create new food item
+%ifdef V86
+    push di                 ; save old DI before overwriting for randomization
+.rand:                      ; lots of code to randomize food positions is better than initializing the PIT chip
+    xchg di, bx             ; alternate BX between head position (not to iterate over the same food locations) and the end of the screen
+    dec bh                  ; decreasing BH for randomization ensures BX is still divisble by 2 and if the snake isn't filling all the possible options, below 0x7D0
+    xor [bx], cl            ; place food item and check if position was empty by applying XOR with CL (assumed to be 0xFF)
+    jp .rand                ; if position was occupied by snake or wall in food generation => try again, if we came from main loop PF=0
+    pop di                  ; restore actual head position
+%else
     in ax, 0x40             ; read 16 bit timer counter into AX for randomization
     and bx, ax              ; mask with BX to make divisible by 4 and less than or equal to screen size
     xor [bx], cl            ; place food item and check if position was empty by applying XOR with CL (assumed to be 0xFF)
+%endif
 .input:                     ; handle keyboard input
     mov bx, 0x7D0           ; initialize BX to screen size (40x25x2 bytes)
     jp .food                ; if position was occupied by snake or wall in food generation => try again, if we came from main loop PF=0
@@ -62,4 +98,10 @@ start:                      ; reset game
     pop bx                  ; no food was consumed so pop tail position into BX
     mov [bx], ah            ; clear old tail position on screen
     jnp .input              ; loop to keyboard input, PF=0 from SUB
+%ifdef V86
+times ($$-$+0xFFFC) db 0x00 ; fill with zeros
+nop                         ; this is only required because of a V86 bug (https://github.com/copy/v86/issues/1253)
+jmp $$                      ; so I'll ignore this section for now but will remove it when the bug is fixed
+%else
 times (0x10000+$$-$) db 0x0 ; fill the rest with zeros as the BIOS needs to be 0x10000 bytes
+%endif
