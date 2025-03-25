@@ -50,7 +50,19 @@ nasm bios.asm -o snake.raw -D QEMU
 
 ### Run
 
-<pre><code>qemu-system-i386 -display curses -bios snake.raw -plugin <a href="https://github.com/donno2048/snake-bios/issues/2">contrib/plugins/libips.so</a>,ips=2000</code></pre>
+```sh
+qemu-system-i386 -display curses -bios snake.raw -plugin contrib/plugins/libips.so,ips=2000
+```
+
+For some reason the ips plugin doesn't come with QEMU so we have to build QEMU from source to use it:
+
+```sh
+git clone --branch stable-9.2 --depth 1 https://github.com/qemu/qemu
+cd qemu
+./configure --target-list=i386-softmmu --enable-curses --enable-plugins --disable-docs
+make all
+ls build/
+```
 
 The game will take some time to initialize the hardware, then you just need to use the numpad arrows to control the snake movement.
 
