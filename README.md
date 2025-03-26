@@ -64,6 +64,13 @@ make all
 ls build/
 ```
 
+You might need to install QEMU build dependencies:
+
+```sh
+apt install gcc libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build qemu libncurses5-dev libncursesw5-dev python3-venv python3-pip -y
+pip3 install tomli
+```
+
 The game will take some time to initialize the hardware, then you just need to use the numpad arrows to control the snake movement.
 
 If you don't have a numpad you can compile with
