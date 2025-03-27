@@ -24,7 +24,7 @@ The V86 version of the BIOS is `109` bytes (ignoring the last 4 bytes because we
 
 You can try the game in the [online demo](https://donno2048.github.io/snake-bios/).
 
-Use the numpad arrow keys on PC or swipe on mobile.
+Use the arrow keys on PC or swipe on mobile.
 
 The [`libv86`](./v86/libv86.js) and [`v86`](./v86/v86.wasm) are genrated like so:
 
