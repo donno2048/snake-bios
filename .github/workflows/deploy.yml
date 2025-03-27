@@ -13,8 +13,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-      apt install nasm -y
-      nasm bios.asm -D V86 -D NONUMPAD -o v86/bios.raw
+        apt install nasm -y
+        nasm bios.asm -D V86 -D NONUMPAD -o v86/bios.raw
     - uses: actions/upload-pages-artifact@v3
       with:
         path: 'v86/'
