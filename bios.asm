@@ -52,7 +52,7 @@ out dx, ax                  ; setting bit 1 (0x2) sets the 8th bit of vertical d
 mov ax, 0x9012              ; set the value of CTRC register 0x12 (the vertical display end register) to 0x190, the set 8 bit comes from the overflow register (index 0x07)
 out dx, ax                  ; set screen height to 0x10 (character height) times 25 lines
 %ifdef V86
-mov al, 0x2                 ; write 0x90 into register index 0x02 (start horizontal blancking register)
+mov al, 0x2                 ; write 0x90 into register index 0x02 (start horizontal blanking register)
 out dx, ax                  ; disable blanking as 0x90 must be above the character clocks of a scan line as it's above the character clocks for the display
 mov al, 0x15                ; write 0x190 into register index 0x15 (start vertical blanking register), the set 8 bit comes from the overflow register (index 0x07)
 out dx, ax                  ; set vertical blanking register to vertical display end
@@ -63,8 +63,8 @@ out dx, ax                  ; set character height to 0xF+1 i.e. 16px
 push si                     ; save arbitrary SI
 mov ax, 0x1413              ; set the value of CTRC register 0x13 (the offset register) to 0x14
 out dx, ax                  ; for some reason this is not necessary without a font, set address offset between lines (chars in line = width/2 = 20) to 0x14
-mov si, font                ; make SI point to the font to enable copying
-xor di, di                  ; make DI point to start of font segment
+mov si, font                ; make CS:SI point to the font to enable copying
+xor di, di                  ; make ES:DI point to start of font segment
 mov cx, 0x100               ; copy all 0x100 characters
 copy_font:
 push cx                     ; save CX
