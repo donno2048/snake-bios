@@ -125,7 +125,7 @@ start:                      ; reset game
     mov [bp+si], di         ; store head position, use BP+SI to default to SS
     jz .food                ; if food was consumed, ZF=1 from ADC => generate new food
 %ifdef SLOW
-mov cx, 0x5000              ; set outer slow-down loop counter
+mov cx, SLOW                ; set outer slow-down loop counter
 .slow:
     push cx                 ; push CX to do 2 loops
     loop $                  ; the inner empty loop

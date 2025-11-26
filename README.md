@@ -88,8 +88,10 @@ And then use the keypad.
 If you don't want to use the QEMU ips plugin, or just want to slow the game down you can use:
 
 ```sh
-nasm bios.asm -o snake.raw -D SLOW
+nasm bios.asm -o snake.raw -D SLOW=0x5000
 ```
+
+You can adjust the `SLOW` factor to fit your machine/emulator.
 
 #### Font
 
