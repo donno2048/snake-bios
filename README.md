@@ -4,7 +4,7 @@ A snake game made entirely in the BIOS.
 
 Based on my [other snake game](https://github.com/donno2048/snake).
 
-It's `110` bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
+It's `114` bytes including all the code used to initialize the hardware (the rest of the BIOS is filled with zeros).
 
 ## Running
 
@@ -20,7 +20,7 @@ This makes it possible to compile for QEMU compatibillity, V86 compatibillity or
 
 ### Online demo
 
-The V86 version of the BIOS is `109` bytes (ignoring the last 4 bytes because we need them just because of a V86 bug as detailed in the comments).
+The V86 version of the BIOS is `116` bytes (ignoring the last 4 bytes because we need them just because of a V86 bug as detailed in the comments).
 
 You can try the game in the [online demo](https://donno2048.github.io/snake-bios/).
 
@@ -54,7 +54,7 @@ nasm bios.asm -o snake.raw -D QEMU
 qemu-system-i386 -display curses -bios snake.raw -plugin contrib/plugins/libips.so,ips=2000
 ```
 
-For some reason the ips plugin doesn't come with QEMU so we have to build QEMU from source to use it:
+For some reason the ips plugin doesn't come with QEMU so we have to build QEMU from source to use it (or go [here](#Slow)):
 
 ```sh
 git clone --branch stable-9.2 --depth 1 https://github.com/qemu/qemu
@@ -73,6 +73,8 @@ pip3 install tomli
 
 The game will take some time to initialize the hardware, then you just need to use the numpad arrows to control the snake movement.
 
+#### Numpad
+
 If you don't have a numpad you can compile with
 
 ```sh
@@ -81,11 +83,15 @@ nasm bios.asm -o snake.raw -D NONUMPAD
 
 And then use the keypad.
 
+#### Slow
+
 If you don't want to use the QEMU ips plugin, or just want to slow the game down you can use:
 
 ```sh
 nasm bios.asm -o snake.raw -D SLOW
 ```
+
+#### Font
 
 To run the game in QEMU with standard graphics we have to include a font, as QEMU doesn't have it built-in.
 
