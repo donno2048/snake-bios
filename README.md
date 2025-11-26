@@ -87,7 +87,7 @@ If you don't want to use the QEMU ips plugin, or just want to slow the game down
 nasm bios.asm -o snake.raw -D SLOW
 ```
 
-To run the game in QEMU with standard graphics we have to include a font, as QEMU doesn't have in built-in.
+To run the game in QEMU with standard graphics we have to include a font, as QEMU doesn't have it built-in.
 
 I'm using [CP437.F16](./CP437.F16), which was taken from https://github.com/viler-int10h/vga-text-mode-fonts/blob/master/FONTS/SYSTEM/DOSMIXED
 
