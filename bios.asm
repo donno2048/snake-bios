@@ -4,9 +4,14 @@
 %endif
 %endif
 
-mov ah, 0xA0                ; set AX to start of screen buffer segment
-mov ds, ax                  ; make DS point to screen buffer
-mov es, ax                  ; same for ES
+%ifdef FONT
+%define V86
+%endif
+
+push 0xA000                 ; push start of screen buffer for game, also start of font buffer if we need a font
+pop es                      ; set ES right away for font loading, also will later be used to access screen buffer 
+push es                     ; push ES with screen buffer
+pop ds                      ; set DS to screen buffer too
 mov dx, 0x3C0               ; port 0x3C0 writes to the attribute address register
 %ifdef V86
 mov al, 0xF4                ; enable keyboard command
@@ -21,8 +26,12 @@ out 0x64, al                ; command 0x60 write byte to controller configuratio
 out 0x60, al                ; write byte 0x60, disables internal clock
 out dx, al                  ; "lock" color palette by setting the palette address source bit to 1 (the 0x40 is being ignored), necessary to initiate video
 mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
-mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
-out dx, ax                  ; enable DMA for the VGA segment
+mov ax, 0x702               ; set the value of sequencer register 2 (the map mask register) to 7
+out dx, ax                  ; don't mask any region of VGA memory
+%ifdef FONT
+mov ax, 0x404               ; set the value of sequencer register 4 (the character map select register) to 4
+out dx, ax                  ; disable spliting input into VGA regions so that we could write the font, later restore
+%endif
 mov dl, 0xCE                ; port 0x3CE writes to the graphics registers
 mov ax, 0x1005              ; set the value of graphics register 5 (graphics mode register) to 0x10
 out dx, ax                  ; store characters as color-value pairs, not with two matrices
@@ -38,16 +47,40 @@ mov dl, 0xB4                ; port 0x3B4 writes to the CRTC registers
 mov ax, 0x2701              ; set the value of CRTC register 1 (horizontal display end) to 0x27
 out dx, ax                  ; set the char count in each row to 0x27+1 i.e. 40
 xchg si, ax                 ; arbitrary pointer to memory location where the initial position of the snake head is stored
-mov ax, 0x4807              ; set the value of CTRC register 7 (the overflow register) to 0x48
-out dx, ax                  ; setting bit 6 (0x40) sets vertical display end register's bit 9 to 1 which allows us not to set it, setting bit 3 (0x8) sets bit 8 of register index 0x15 (which we set for V86)
+mov ax, 0xA07               ; set the value of CTRC register 7 (the overflow register) to 0xA
+out dx, ax                  ; setting bit 1 (0x2) sets the 8th bit of vertical display end, setting bit 3 (0x8) sets bit 8 of register index 0x15 (which we set for V86)
+mov ax, 0x9012              ; set the value of CTRC register 0x12 (the vertical display end register) to 0x190, the set 8 bit comes from the overflow register (index 0x07)
+out dx, ax                  ; set screen height to 0x10 (character height) times 25 lines
 %ifdef V86
-mov al, 0x2                 ; write 0x48 into register index 0x02 (start horizontal blancking register)
-out dx, ax                  ; disable blancking as 0x48 must be above the character clocks of a scan line as it's above the character clocks for the display
-mov ax, 0x9015              ; write 0x190 into register index 0x15 (start vertical blanking register), the set 8 bit comes from the overflow register (index 0x07)
-out dx, ax                  ; set display height to 0x10 (character height) times 25 lines
+mov al, 0x2                 ; write 0x90 into register index 0x02 (start horizontal blanking register)
+out dx, ax                  ; disable blanking as 0x90 must be above the character clocks of a scan line as it's above the character clocks for the display
+mov al, 0x15                ; write 0x190 into register index 0x15 (start vertical blanking register), the set 8 bit comes from the overflow register (index 0x07)
+out dx, ax                  ; set vertical blanking register to vertical display end
 %endif
 mov ax, 0xF09               ; set the value of CTRC register 9 (the minimum scan line register) to 0xF
 out dx, ax                  ; set character height to 0xF+1 i.e. 16px
+%ifdef FONT
+push si                     ; save arbitrary SI
+mov ax, 0x1413              ; set the value of CTRC register 0x13 (the offset register) to 0x14
+out dx, ax                  ; for some reason this is not necessary without a font, set address offset between lines (chars in line = width/2 = 20) to 0x14
+mov si, font                ; make CS:SI point to the font to enable copying
+xor di, di                  ; make ES:DI point to start of font segment
+mov cx, 0x100               ; copy all 0x100 characters
+copy_font:
+push cx                     ; save CX
+mov cx, 0x10                ; we write only 0x10 byte values each time to move to the next 0x20 byte character section
+cs rep movsb                ; move from font location to VGA section
+add di, 0x10                ; move to next character section
+pop cx                      ; pop CX
+loop copy_font              ; copy all characters
+mov dl, 0xC4                ; port 0x3C4 writes to the sequencer registers
+mov ax, 0x302               ; set the value of sequencer register 2 (the map mask register) to 3
+out dx, ax                  ; make font region masked
+mov al, 0x4                 ; set the value of sequencer register 4 (the character map select register) to 4
+out dx, ax                  ; restore it to make the color-character writing method possible again
+pop si                      ; restore SI
+%endif
+
 mov ch, 0x3B                ; override initial CX so that in initial screen clearing the entire buffer will be cleared
 start:                      ; reset game
     mov ax, 0x720           ; fill the screen with word 0x720 (white on black space)
@@ -91,6 +124,15 @@ start:                      ; reset game
     jnp start               ; if it already had snake or wall in it or if it crossed a vertical edge, PF=0 from ADC => game over
     mov [bp+si], di         ; store head position, use BP+SI to default to SS
     jz .food                ; if food was consumed, ZF=1 from ADC => generate new food
+%ifdef SLOW
+mov cx, SLOW                ; set outer slow-down loop counter
+.slow:
+    push cx                 ; push CX to do 2 loops
+    loop $                  ; the inner empty loop
+    pop cx                  ; pop CX to use it in outer loop for more slow down
+    loop .slow              ; do outer loop
+    dec cx                  ; set CL=0xFF back
+%endif
 .wall:                      ; draw an invisible wall on the left side
     mov [bx], cl            ; store wall character
     sub bx, BYTE 0x50       ; go one line backwards
@@ -98,6 +140,11 @@ start:                      ; reset game
     pop bx                  ; no food was consumed so pop tail position into BX
     mov [bx], ah            ; clear old tail position on screen
     jnp .input              ; loop to keyboard input, PF=0 from SUB
+
+%ifdef FONT
+font: incbin "CP437.F16"    ; include the font
+%endif
+
 %ifdef V86
 times ($$-$+0xFFFC) db 0x00 ; fill with zeros
 nop                         ; this is only required because of a V86 bug (https://github.com/copy/v86/issues/1253)
