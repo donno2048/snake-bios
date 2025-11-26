@@ -81,6 +81,22 @@ nasm bios.asm -o snake.raw -D NONUMPAD
 
 And then use the keypad.
 
+If you don't want to use the QEMU ips plugin, or just want to slow the game down you can use:
+
+```sh
+nasm bios.asm -o snake.raw -D SLOW
+```
+
+To run the game in QEMU with standard graphics we have to include a font, as QEMU doesn't have in built-in.
+
+I'm using [CP437.F16](./CP437.F16), which was taken from https://github.com/viler-int10h/vga-text-mode-fonts
+
+To compile using the font use:
+
+```sh
+nasm bios.asm -o snake.raw -D FONT
+```
+
 ## QR Code
 
 Here is the game as a QR Code (made with `qrencode -r <(sed 's/\x00*$//' snake.raw) -8 -o qr.png`)
