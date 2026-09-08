@@ -57,7 +57,7 @@ qemu-system-i386 -display curses -bios snake.raw -plugin contrib/plugins/libips.
 For some reason the ips plugin doesn't come with QEMU so we have to build QEMU from source to use it (or go [here](#Slow)):
 
 ```sh
-git clone --branch stable-9.2 --depth 1 https://github.com/qemu/qemu
+git clone --branch stable-11.0 --depth 1 https://github.com/qemu/qemu
 cd qemu
 ./configure --target-list=i386-softmmu --enable-curses --enable-plugins --disable-docs
 make all
